@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <!-- Meta tags for character set and viewport -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Title of the page -->
+    <title data-lang-key="title">Code Snippets</title>
+
+    <!-- External stylesheets -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.7.2/styles/default.min.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+    <!-- Internal inline styles -->
+    <style>
+        .brand-logo {
+            margin-left: 20px;
+        }
+
+        /* Style for clickable snippet title */
+        .snippet-title {
+            cursor: pointer;
+            color: #007bff;
+        }
+
+        /* Style for highlighted snippet title on hover */
+        .snippet-title:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Navigation bar -->
+    <nav>
+        <div class="nav-wrapper">
+            <a href=" " class="brand-logo" data-lang-key="title"> Code Snippets</a>
+            <ul id="nav-mobile" class="right">
+                <li><a href="#" id="lang-toggle">English</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container">
+        <!-- Login form -->
+        <div id="login-form">
+            <h3 data-lang-key="login">Login</h3>
+            <form id="login">
+                <input type="text" name="username" placeholder="Username">
+                <input type="password" name="password" placeholder="Password">
+                <button type="submit" data-lang-key="login" class="btn">Login</button>
+            </form>
+        </div>
+
+        <!-- Register form -->
+        <div id="register-form">
+            <h3 data-lang-key="register">Register</h3>
+            <form id="register">
+                <input type="text" name="username" placeholder="Username">
+                <input type="password" name="password" placeholder="Password">
+                <button type="submit" data-lang-key="register" class="btn">Register</button>
+            </form>
+        </div>
+
+        <!-- Snippet submission form -->
+        <div id="snippet-form" style="display:none">
+            <h3 data-lang-key="snippetSubmit">New Code Snippet</h3>
+            <form id="snippet">
+                <input type="text" name="title" placeholder="Title">
+                <textarea name="code" placeholder="Code"></textarea>
+                <div class="row">
+                    <div class="col s0">
+                        <button type="submit" data-lang-key="snippetSubmit" class="btn">Submit</button>
+                    </div>
+                    <div class="col s1">
+                        <button id="logout" data-lang-key="logout" class="btn">Logout</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- Section title -->
+        <h2 data-lang-key="title">Code Snippets</h2>
+
+        <!-- Snippets container -->
+        <div id="snippets"></div>
+
+        <!-- Pager elements -->
+        <ul class="pagination">
+            <li class="disabled" id="previous-page"><a href=" "><i class="material-icons">chevron_left</i></a></li>
+            <li class="waves-effect" id="next-page"><a href="#!"><i class="material-icons">chevron_right</i></a></li>
+        </ul>
+    </div>
+
+    <!-- External JavaScript libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.7.2/highlight.min.js"></script>
+
+    <!-- Initialize Highlight.js to highlight code blocks -->
+    <script>hljs.initHighlightingOnLoad();</script>
+
+    <!-- Frontend JavaScript code -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+
+            // Selecting HTML elements
+            const loginForm = document.getElementById('login');
+            const registerForm = document.getElementById('register');
+            const snippetForm = document.getElementById('snippet');
+            const snippetsContainer = document.getElementById('snippets');
+            const logoutButton = document.getElementById('logout');
+            const langToggle = document.getElementById('lang-toggle');
+
+            // Variables for pagination
+            let currentPage = 1;
+            const snippetsPerPage = 10;
+
+            // Default language is English
+            let currentLanguage = 'en';
+
+            // Translations for different languages
+            const translations = {
+                en: {
+                    // English translations
+                    title: 'Code Snippets',
+                    login: 'Login',
+                    register: 'Register',
+                    snippetSubmit: 'New Code Snippet',
+                    noSnippet: 'No snippets yet',
+                    commentPlaceholder: 'Write a comment',
+                    commentSubmit: 'Add Comment',
+                    commentsLabel: 'Comments',
+                    logout: 'Logout',
+                    registeredSuccessfully: 'Registered successfully!',
+                    invalidCredentials: 'Error: Invalid credentials.',
+                    invalidExists: 'Error: User already exists or invalid entry.',
+                    snippetPostedSuccessfully: 'Snippet posted successfully.',
+                    unableToPostSnippet: 'Error: Unable to post the snippet.',
+                    commentAddedSuccessfully: 'Comment added successfully.',
+                    unableToAddComment: 'Error: Unable to add the comment.',
+                    errorProcessingRequest: 'An error occurred while processing your request.',
+                    fetchingSnippetsError: 'An error occurred while fetching snippets.',
+                    fetchingCommentsError: 'An error occurred while fetching comments.',
+                },
+                de: {
+                    // German translations
+                    title: 'Code-Snippets',
+                    login: 'Anmelden',
+                    register: 'Registrieren',
+                    snippetSubmit: 'Neuer Code-Schnipsel',
+                    noSnippet: 'Noch keine Code-Schnipsel',
+                    commentPlaceholder: 'Schreibe einen Kommentar',
+                    commentSubmit: 'Kommentar hinzufügen',
+                    commentsLabel: 'Kommentare',
+                    logout: 'Abmelden',
+                    registeredSuccessfully: 'Erfolgreich registriert!',
+                    invalidCredentials: 'Fehler: Ungültige Zugangsdaten.',
+                    invalidExists: 'Error: Benutzer existiert bereits oder ungültiger Eintrag.',
+                    snippetPostedSuccessfully: 'Schnipsel erfolgreich veröffentlicht.',
+                    unableToPostSnippet: 'Fehler: Schnipsel konnte nicht veröffentlicht werden.',
+                    commentAddedSuccessfully: 'Kommentar erfolgreich hinzugefügt.',
+                    unableToAddComment: 'Fehler: Kommentar konnte nicht hinzugefügt werden.',
+                    errorProcessingRequest: 'Ein Fehler ist bei der Verarbeitung Ihrer Anfrage aufgetreten.',
+                    fetchingSnippetsError: 'Ein Fehler ist beim Abrufen der Schnipsel aufgetreten.',
+                    fetchingCommentsError: 'Ein Fehler ist beim Abrufen der Kommentare aufgetreten.',
+                },
+            };
+
+            // Function to toggle the language and update UI elements
+            function toggleLanguage() {
+                // Toggle the language between 'en' and 'de'
+                currentLanguage = currentLanguage === 'en' ? 'de' : 'en';
+
+                // Update the button text based on the current language
+                langToggle.innerText = currentLanguage === 'en' ? 'English' : 'Deutsch';
+
+                // Get all elements that need to be translated
+                const elementsToTranslate = document.querySelectorAll('[data-lang-key]');
+
+                // Replace the text content with the appropriate translations
+                elementsToTranslate.forEach(element => {
+                    const langKey = element.getAttribute('data-lang-key');
+                    element.innerText = translations[currentLanguage][langKey];
+                });
+            }
+
+            // Add event listener to the language toggle button
+            langToggle.addEventListener('click', toggleLanguage);
+
+            // Function to handle form submission for user registration
+            async function handleRegister(form, endpoint) {
+                // Register form submission event listener
+                form.addEventListener('submit', async function (event) {
+                    event.preventDefault();
+                    const formData = new FormData(form);
+                    const data = {};
+                    formData.forEach((value, key) => {
+                        data[key] = value;
+                    });
+
+                    try {
+                        const response = await fetch('/api/register', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(data),
+                        });
+
+                        if (response.ok) {
+                            location.reload();
+                            alert(translations[currentLanguage]['registeredSuccessfully']);
+                        } else {
+                            alert(translations[currentLanguage]['invalidExists']);
+                        }
+                    } catch (error) {
+                        console.error('Error:', error);
+                        alert(translations[currentLanguage]['errorProcessingRequest']);
+                    }
+                });
+            }
+
+            // Function to handle form submission for user login
+            async function handleLogin(form) {
+                // Login form submission event listener
+                form.addEventListener('submit', async function (event) {
+                    event.preventDefault();
+                    const formData = new FormData(form);
+                    const data = {};
+                    formData.forEach((value, key) => {
+                        data[key] = value;
+                    });
+
+                    try {
+                        const response = await fetch('/api/login', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(data),
+                        });
+
+                        if (response.ok) {
+                            const { token } = await response.json();
+                            localStorage.setItem('token', token);
+                            location.reload();
+                        } else {
+                            alert(translations[currentLanguage]['invalidCredentials']);
+                        }
+                    } catch (error) {
+                        console.error('Error:', error);
+                        alert(translations[currentLanguage]['errorProcessingRequest']);
+                    }
+                });
+            }
+
+            // Function to update form visibility based on login status
+            function updateForms() {
+                const token = localStorage.getItem('token');
+
+                if (token) {
+                    document.getElementById('login-form').style.display = 'none';
+                    document.getElementById('register-form').style.display = 'none';
+                    document.getElementById('snippet-form').style.display = 'block';
+                    logoutButton.style.display = 'block';
+                } else {
+                    document.getElementById('login-form').style.display = 'block';
+                    document.getElementById('register-form').style.display = 'block';
+                    document.getElementById('snippet-form').style.display = 'none';
+                    logoutButton.style.display = 'none';
+                }
+            }
+
+            // Function to check if the user is authenticated
+            function isAuthenticated() {
+                const token = localStorage.getItem('token');
+                return token !== null;
+            }
+
+            // Function to handle snippet submission
+            function handleSnippetSubmission() {
+                // Snippet submission form event listener
+                snippetForm.addEventListener('submit', async function (event) {
+                    event.preventDefault();
+                    const formData = new FormData(snippetForm);
+                    const data = {};
+                    formData.forEach((value, key) => {
+                        data[key] = value;
+                    });
+
+                    try {
+                        const token = localStorage.getItem('token');
+                        const response = await fetch('/api/snippets', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${token}`,
+                            },
+                            body: JSON.stringify(data),
+                        });
+
+                        if (response.ok) {
+                            alert(translations[currentLanguage]['snippetPostedSuccessfully']);
+                            location.reload();
+                        } else {
+                            alert(translations[currentLanguage]['unableToPostSnippet']);
+                        }
+                    } catch (error) {
+                        console.error('Error:', error);
+                        alert(translations[currentLanguage]['errorProcessingRequest']);
+                    }
+                });
+            }
+
+            // Function to handle logout
+            function logout() {
+                localStorage.removeItem('token');
+                updateForms();
+                fetchSnippets();
+            }
+
+            // Function to fetch and render snippets
+            async function fetchSnippets(page) {
+                try {
+                    const response = await fetch(`/api/snippets?page=${page}&limit=${snippetsPerPage}`);
+                    if (response.ok) {
+                        const data = await response.json();
+                        const snippets = data.snippets;
+                        const totalSnippets = data.totalSnippets;
+
+                        // Update pager based on the current page
+                        updatePager(currentPage, totalSnippets);
+
+                        let html = '';
+                        if (snippets.length === 0) {
+                            html = `<p>${translations[currentLanguage]['noSnippet']}</p >`;
+                        }
+                        else {
+                            // Code for rendering each snippet
+                            snippets.forEach(snippet => {
+                                html += `<div class="snippet" data-snippet-id="${snippet._id}">
+                            <h3 class="snippet-title">${snippet.title}</h3>
+                            <div class="snippet-code" style="display: none;">
+                                <pre><code class="javascript">${snippet.code}</code></pre></div>
+                            <div class="snippet-date" style="display: none;">
+                                <p>Last Edited: ${new Date(snippet.lastEdited).toLocaleString()}</p ></div>`;
+
+                                html += `<h5 class="comments-label" style="display: none;">${translations[currentLanguage]['commentsLabel']}</h5>
+                            <div class="comments" style="display: none;"></div>`;
+
+                                // Show comment form if the user is logged in
+                                if (isAuthenticated()) {
+                                    // Code for comment form
+                                    html += `
+                            <form class="comment-form" style="display: none;">
+                                <input type="text" name="comment" placeholder="${translations[currentLanguage]['commentPlaceholder']}">
+                                <button type="submit" class="btn">${translations[currentLanguage]['commentSubmit']}</button>
+                            </form>
+                            </div>`;
+                                }
+
+                            });
+                        }
+
+                        snippetsContainer.innerHTML = html;
+
+                        // Initialize Highlight.js to highlight code blocks
+                        document.querySelectorAll('pre code').forEach((block) => {
+                            hljs.highlightBlock(block);
+                        });
+
+
+                        // Attach event listeners to comment forms
+                        const commentForms = document.querySelectorAll('.comment-form');
+                        commentForms.forEach(form => {
+                            form.addEventListener('submit', async function (event) {
+                                event.preventDefault();
+                                const formData = new FormData(form);
+                                const data = {};
+                                formData.forEach((value, key) => {
+                                    data[key] = value;
+                                });
+
+                                try {
+                                    const token = localStorage.getItem('token');
+                                    const snippetId = form.parentNode.dataset.snippetId;
+                                    const response = await fetch(`/api/snippets/${snippetId}/comments`, {
+                                        method: 'POST',
+                                        headers: {
+                                            'Content-Type': 'application/json',
+                                            'Authorization': `Bearer ${token}`,
+                                        },
+                                        body: JSON.stringify(data),
+                                    });
+
+                                    if (response.ok) {
+                                        alert(translations[currentLanguage]['commentAddedSuccessfully']);
+                                        fetchCommentsForSnippet(snippetId);
+                                    } else {
+                                        alert(translations[currentLanguage]['unableToAddComment']);
+                                    }
+                                } catch (error) {
+                                    console.error('Error:', error);
+                                    alert(translations[currentLanguage]['errorProcessingRequest']);
+                                }
+                            });
+                        });
+
+                        // Attach event listeners to snippet titles
+                        const snippetTitles = document.querySelectorAll('.snippet-title');
+                        snippetTitles.forEach(title => {
+                            title.addEventListener('click', function () {
+                                const snippetContainer = title.parentNode;
+                                const codeContainer = snippetContainer.querySelector('.snippet-code');
+                                const snippetDate = snippetContainer.querySelector('.snippet-date');
+                                const commentsLabel = snippetContainer.querySelector('.comments-label');
+                                const commentsContainer = snippetContainer.querySelector('.comments');
+
+                                codeContainer.style.display = codeContainer.style.display === 'none' ? 'block' : 'none';
+                                snippetDate.style.display = snippetDate.style.display === 'none' ? 'block' : 'none';
+                                commentsLabel.style.display = commentsLabel.style.display === 'none' ? 'block' : 'none';
+                                commentsContainer.style.display = commentsContainer.style.display === 'none' ? 'block' : 'none';
+                                if (isAuthenticated()) {
+                                    const commentForm = snippetContainer.querySelector('.comment-form');
+                                    commentForm.style.display = commentForm.style.display === 'none' ? 'block' : 'none';
+                                }
+                            });
+                        });
+
+                        // Fetch comments for each snippet and display them
+                        snippets.forEach(snippet => {
+                            fetchCommentsForSnippet(snippet._id);
+                        });
+                    } else {
+                        console.error('Error:', response.status);
+                        alert(translations[currentLanguage]['fetchingSnippetsError']);
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert(translations[currentLanguage]['fetchingSnippetsError']);
+                }
+            }
+
+            // Function to fetch comments for a specific snippet and display them
+            async function fetchCommentsForSnippet(snippetId) {
+                try {
+                    const response = await fetch(`/api/snippets/${snippetId}/comments`);
+                    if (response.ok) {
+                        const { comments } = await response.json();
+                        const commentsContainer = document.querySelector(`[data-snippet-id="${snippetId}"] .comments`);
+                        let html = '';
+                        if (comments.length === 0) {
+                            html = '<p>No comments yet.</p >';
+                        }
+                        else {
+                            comments.forEach(comment => {
+                                html += `<p>${comment.text} - ${new Date(comment.lastEdited).toLocaleString()}</p >`;
+                            });
+                        }
+                        commentsContainer.innerHTML = html;
+                    } else {
+                        console.error('Error:', response.status);
+                        alert(translations[currentLanguage]['fetchingCommentsError']);
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert(translations[currentLanguage]['fetchingCommentsError']);
+                }
+            }
+
+            // Function to update pager based on the current page and total snippets
+            function updatePager(currentPage, totalSnippets) {
+                const totalPages = Math.ceil(totalSnippets / snippetsPerPage);
+                const previousPageElement = document.getElementById('previous-page');
+                const nextPageElement = document.getElementById('next-page');
+
+                if (currentPage <= 1) {
+                    previousPageElement.classList.add('disabled');
+                } else {
+                    previousPageElement.classList.remove('disabled');
+                }
+
+                if (currentPage >= totalPages) {
+                    nextPageElement.classList.add('disabled');
+                } else {
+                    nextPageElement.classList.remove('disabled');
+                }
+            }
+
+            // Function to handle next page click
+            document.getElementById('next-page').addEventListener('click', function () {
+                currentPage++;
+                fetchSnippets(currentPage);
+            });
+
+            // Function to handle previous page click
+            document.getElementById('previous-page').addEventListener('click', function () {
+                if (currentPage > 1) {
+                    currentPage--;
+                    fetchSnippets(currentPage);
+                }
+            });
+
+            // Add event listeners for login and register forms
+            handleLogin(loginForm);
+            handleRegister(registerForm);
+
+            // Add event listener for the snippet form
+            snippetForm.addEventListener('submit', function (event) {
+                event.preventDefault();
+                handleSnippetSubmission();
+            });
+
+            // Add event listener for the logout button
+            logoutButton.addEventListener('click', function () {
+                logout();
+            });
+
+            // Initial setup
+            updateForms();
+            fetchSnippets(currentPage);
+        });
+    </script>
+</body>
+
+</html>
