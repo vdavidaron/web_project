@@ -107,3 +107,5 @@ The Code Snippets app supports two languages: English and German. Users can easi
 - Translation of the UI in two languages (2 points)
 
 Please note that this documentation provides an overview of the Code Snippets app, its features, and how to use it. For more in-depth implementation details, refer to the source code files `index.js` (backend) and `index.html` (frontend).
+
+The help of ChatGPT was used for the completion of the project.
